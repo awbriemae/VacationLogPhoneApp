@@ -1,52 +1,35 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.navigation.NavHost
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 
+// The screens have been moved to seperate places because the amount of lines was insane
+// If the format looks weird that why
 data class HolidayDestination(
     val name: String,
     val imageUrl: String? = null,
@@ -57,6 +40,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
+                // navcontroller for navigating through screens
                 val navController = rememberNavController()
                 val viewModel: HolidayViewModel = viewModel()
 
@@ -68,6 +52,7 @@ class MainActivity : ComponentActivity() {
                         val name = backStackEntry.arguments?.getString("name") ?: ""
                         val imageUrl = backStackEntry.arguments?.getString("imageUrl")
                         DestinationDetailsScreen(
+                            // This is the destination details thing
                             name = name,
                             imageUrl = imageUrl,
                             navController = navController,
@@ -87,10 +72,16 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+// This is where the holiday list is stored
+// After learning and working with kotlin/androidstudio more I shouldve made this a json instead
 fun HolidayListScreen(navController: NavHostController) {
+    // i chose polish location because I am polish and have strong opinions about some of these >:I
     val destinations = listOf(
+        // All of these locations are the actual polish spelling not the englishised versions
+        // All of these images were taken from the first image you get when you look up the location
+        // Also these may display errors if the phone doesn't support these characters like "ł"
         HolidayDestination(
-            "Warsaw",
+            "Warszawa",
             "https://t3.gstatic.com/licensed-image?q=tbn:ANd9GcRB60imyi9a_HIVT1N9nNmPjwB6WKB4s7nL1DvuELaG9j8MGlXj053Ri0k2nq3Qs-6q"
         ),
         HolidayDestination(
@@ -144,10 +135,11 @@ fun HolidayListScreen(navController: NavHostController) {
                 .padding(padding)
         ) {
             Button(
+                // Here is the buttons for logs
                 onClick = { navController.navigate("logs") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp) // long but slim
+                    .height(60.dp)
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -156,6 +148,9 @@ fun HolidayListScreen(navController: NavHostController) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
+                // here I had to do this because it would just throw out so many errors
+                // i think its with the way that it reads the chars
+                // once again stack overflow saved me :D
                 items(destinations) { destination ->
                     val encodedName =
                         URLEncoder.encode(destination.name, StandardCharsets.UTF_8.toString())
@@ -177,6 +172,7 @@ fun HolidayListScreen(navController: NavHostController) {
 // -------------------------------------------------------------------------------------------------
 // Screen 1
 @Composable
+// Here is where the cards actually are
 fun DestinationRow(dest: HolidayDestination, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
@@ -191,24 +187,31 @@ fun DestinationRow(dest: HolidayDestination, onClick: () -> Unit = {}) {
                 .fillMaxWidth()
                 .height(120.dp)
         ) {
-            // Image with fade mask
+            // This makes teh image slowly fade out...
+            // i had this idea from a website but doing it here was about 40 times harder
+
+            // this also wasnt in any of the slides which is really fair
+            // i shouldnt have done it but thought it would be really cool...
             AsyncImage(
                 model = dest.imageUrl,
                 contentDescription = dest.name,
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(160.dp)
-                    .graphicsLayer { alpha = 0.99f } // force layer
+                    .graphicsLayer { alpha = 0.99f }
                     .drawWithContent {
                         drawContent()
                         drawRect(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(
-                                    Color.Black,       // keep left side fully visible
-                                    Color.Transparent  // fade out to transparent on right
+                                    // keep left side fully visible
+                                    Color.Black,
+                                    // fade out to transparent on right
+                                    Color.Transparent
                                 ),
                                 startX = 0f,
-                                endX = size.width    // cover full width
+                                // cover full width
+                                endX = size.width
                             ),
                             blendMode = BlendMode.DstIn
                         )
@@ -217,7 +220,6 @@ fun DestinationRow(dest: HolidayDestination, onClick: () -> Unit = {}) {
             )
 
             Spacer(modifier = Modifier.width(42.dp))
-            // Text content
             Column(
                 modifier = Modifier
                     .padding(12.dp)
@@ -230,163 +232,3 @@ fun DestinationRow(dest: HolidayDestination, onClick: () -> Unit = {}) {
         }
     }
 }
-
-
-// -------------------------------------------------------------------------------------------------
-// Screen 2
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DestinationDetailsScreen(
-    name: String,
-    imageUrl: String?,
-    navController: NavHostController,
-    viewModel: HolidayViewModel
-) {
-    val context = LocalContext.current
-    var note by rememberSaveable { mutableStateOf("") }
-    var duration by rememberSaveable { mutableStateOf("") }
-    var category by rememberSaveable { mutableStateOf("") }
-
-    // Show toast when note changes
-    LaunchedEffect(note) {
-        if (note.isNotEmpty()) {
-            Toast.makeText(context, "Note updated!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Optional cleanup
-    DisposableEffect(Unit) {
-        onDispose {
-            Toast.makeText(context, "Leaving details screen", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(name) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Talk about your visit to $name", style = MaterialTheme.typography.titleMedium)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Note input field
-            OutlinedTextField(
-                value = note,
-                onValueChange = { newValue ->
-                    note = newValue
-                    viewModel.userNote.value = newValue
-                },
-                label = { Text("Your Note") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Duration input field
-            OutlinedTextField(
-                value = duration,
-                onValueChange = { newValue: String ->
-                    duration = newValue
-                    viewModel.duration.value = newValue
-                },
-                label = { Text("Duration") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Category input field
-            OutlinedTextField(
-                value = category,
-                onValueChange = { newValue: String ->
-                    category = newValue
-                    viewModel.category.value = newValue
-                },
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                viewModel.saveLog(name)
-                Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
-                navController.navigate("logs")
-            }) {
-                Text("Save")
-            }
-        }
-    }
-}
-
-// Screen 3
-// Log Screen
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LogsScreen(navController: NavHostController, viewModel: HolidayViewModel) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Saved Logs") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        if (viewModel.logs.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No logs yet")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding)
-            ) {
-                items(viewModel.logs) { log ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                "Destination: ${log.destinationName}",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text("Note: ${log.note}")
-                            Text("Duration: ${log.duration}")
-                            Text("Category: ${log.category}")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
